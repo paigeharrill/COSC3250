@@ -47,6 +47,11 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	
     // TODO: Setup PCB entry for new process.
 
+    ppcb->state = PRSUSP;
+    ppcb->*stkbase = *saddr;
+    ppcb->stklen = ssize;
+    ppcd->name[PNMLEN] = *name;
+
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
     *--saddr = pid;
@@ -65,7 +70,9 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
         *--saddr = 0;
     }
     // TODO: Initialize process context.
-    //
+    
+
+
     // TODO:  Place arguments into context and/or activation record.
     //        See K&R 7.3 for example using va_start, va_arg and
     //        va_end macros for variable argument functions.

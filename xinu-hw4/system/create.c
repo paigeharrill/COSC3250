@@ -7,10 +7,13 @@
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
 #include <xinu.h>
+#include <proc.h>
 
 static pid_typ newpid(void);
 void userret(void);
 void *getstk(ulong);
+
+#define ARG_REG_MAX 8
 
 /**
  * Create a new process to start running a function.
@@ -46,12 +49,12 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     ppcb = &proctab[pid];
 	
     // TODO: Setup PCB entry for new process.
-	// comment
-    ppcb->state = PRSUSP;
-    ppcb->*stkbase = *saddr;
-    ppcb->stklen = ssize;
-    ppcd->name[PNMLEN] = *name;
-
+	// feeling good on this one
+    ppcb->state = PRSUSP;		// defined in header file for suspended state
+    ppcb->stkbase = (ulong *)(saddr - ssize); 	// base of stack (bottom) = stack address - size of stack
+    ppcb->stklen = ssize;		// stack size is ssize
+    strncpy(ppcb->name, name, PNMLEN); 	// strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
+    ppcb->stkptr = NULL;
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
     *--saddr = pid;
@@ -71,11 +74,36 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     }
     // TODO: Initialize process context.
     
+    //setting each register to 0 so that its memory is allocated and we know whats in it
+    for(int i = 0; i < 32; i++){
+    	*--saddr = 0;
+    }
+
+    ppcb->stkptr = saddr;  // assign stack pointer with stack address
 
 
     // TODO:  Place arguments into context and/or activation record.
     //        See K&R 7.3 for example using va_start, va_arg and
     //        va_end macros for variable argument functions.
+    
+    va_start(ap, nargs);
+
+    //assigning the args to registers
+    for(int i =0; i<nargs; i++){
+    	// for 8 args, A0-A7, assign as arg
+	if(i<8){
+		saddr[CTX_A0+i] = va_arg(ap, ulong);
+	}
+	else{ //padding
+		saddr[CTX_PC + (i-7)] = va_arg(ap, ulong);
+	}
+    }
+    va_end(ap);
+
+    //assign program counter, register addr, and stack pointer
+    saddr[CTX_SP] = &saddr[CTX_PC];
+    saddr[CTX_PC] = funcaddr;
+    saddr[CTX_RA] = &userret;
 
     return pid;
 }

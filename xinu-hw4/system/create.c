@@ -51,10 +51,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     // TODO: Setup PCB entry for new process.
 	// feeling good on this one
     ppcb->state = PRSUSP;		// defined in header file for suspended state
-    ppcb->stkbase = (ulong *)(saddr - ssize); 	// base of stack (bottom) = stack address - size of stack
+    ppcb->stkbase = saddr; 	// base of stack (bottom) = stack address - size of stack
     ppcb->stklen = ssize;		// stack size is ssize
     strncpy(ppcb->name, name, PNMLEN); 	// strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
-    ppcb->stkptr = NULL;
+    
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
     *--saddr = pid;
@@ -74,12 +74,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     }
     // TODO: Initialize process context.
     
-    //setting each register to 0 so that its memory is allocated and we know whats in it
-    for(int i = 0; i < 32; i++){
-    	*--saddr = 0;
-    }
-
-    ppcb->stkptr = saddr;  // assign stack pointer with stack address
+    // initialize context registers
+    ppcb->ctx[CTX_RA] = (ulong)userret;
+    ppcb->ctx[CTX_SP] = (ulong)saddr;
+    ppcb->ctx[CTX_PC] = (ulong)functaddr;
 
 
     // TODO:  Place arguments into context and/or activation record.
@@ -92,18 +90,13 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     for(int i =0; i<nargs; i++){
     	// for 8 args, A0-A7, assign as arg
 	if(i<8){
-		saddr[CTX_A0+i] = va_arg(ap, ulong);
+		ppcb->ctx[i] = va_arg(ap, ulong);
 	}
-	else{ //padding
-		saddr[CTX_PC + (i-7)] = va_arg(ap, ulong);
+	else{ //if >8, in saddr and need to move up the padding
+		*++saddr = va_arg(ap, ulong);
 	}
     }
     va_end(ap);
-
-    //assign program counter, register addr, and stack pointer
-    saddr[CTX_SP] = &saddr[CTX_PC];
-    saddr[CTX_PC] = funcaddr;
-    saddr[CTX_RA] = &userret;
 
     return pid;
 }

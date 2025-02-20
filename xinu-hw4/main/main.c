@@ -18,8 +18,5 @@ process main(void)
 
     testcases();
 
-    while (1)
-        ;
-
     return 0;
 }

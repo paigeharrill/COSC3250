@@ -11,7 +11,7 @@
 /* Function prototypes */
 static int sysinit(void);       /* intializes system structures          */
 static void welcome(void);      /* Print inital O/S data                 */
-process xmain(void); 		/* xmain is the first process created    */
+process main(void); 		/* xmain is the first process created    */
 
 /* Declarations of major kernel variables */
 pcb proctab[NPROC];             /* Process table                         */
@@ -40,7 +40,7 @@ void nulluser(void)
     welcome();
 
     /* Call the main program */
-    xmain();
+    main();
 
     /* Call the main program */
 //      ready(create((void *) xmain, INITSTK, "MAIN", 2, 0, NULL), 0);

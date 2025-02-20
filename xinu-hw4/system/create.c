@@ -3,17 +3,17 @@
  * @provides create, newpid, userret
  *
  * COSC 3250 Assignment 4
+ * @author Paige Harrill & Kayla Imanzi
+   Instructor: Dr. Brylow
+   TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
  */
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
 #include <xinu.h>
-#include <proc.h>
 
 static pid_typ newpid(void);
 void userret(void);
 void *getstk(ulong);
-
-#define ARG_REG_MAX 8
 
 /**
  * Create a new process to start running a function.
@@ -49,12 +49,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     ppcb = &proctab[pid];
 	
     // TODO: Setup PCB entry for new process.
-	// feeling good on this one
-    ppcb->state = PRSUSP;		// defined in header file for suspended state
-    ppcb->stkbase = saddr; 	// base of stack (bottom) = stack address - size of stack
-    ppcb->stklen = ssize;		// stack size is ssize
-    strncpy(ppcb->name, name, PNMLEN); 	// strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
-    
+    ppcb->state = PRSUSP;               // defined in header file for suspended state
+    ppcb->stkbase = saddr;      // base of stack (bottom) = stack address - size of stack
+    ppcb->stklen = ssize;               // stack size is ssize
+    strncpy(ppcb->name, name, PNMLEN);  // strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
     *--saddr = pid;
@@ -73,31 +71,28 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
         *--saddr = 0;
     }
     // TODO: Initialize process context.
-    
-    // initialize context registers
-    ppcb->ctx[CTX_RA] = (ulong)userret;
-    ppcb->ctx[CTX_SP] = (ulong)saddr;
-    ppcb->ctx[CTX_PC] = (ulong)functaddr;
-
-
+    ppcb->ctx[CTX_RA] = (ulong) userret;
+    ppcb->ctx[CTX_SP] = (ulong) saddr;
+    ppcb->ctx[CTX_PC] = (ulong) funcaddr;
     // TODO:  Place arguments into context and/or activation record.
     //        See K&R 7.3 for example using va_start, va_arg and
     //        va_end macros for variable argument functions.
-    
     va_start(ap, nargs);
 
     //assigning the args to registers
     for(int i =0; i<nargs; i++){
-    	// for 8 args, A0-A7, assign as arg
-	if(i<8){
-		ppcb->ctx[i] = va_arg(ap, ulong);
-	}
-	else{ //if >8, in saddr and need to move up the padding
-		*++saddr = va_arg(ap, ulong);
-	}
+        // for 8 args, A0-A7, assign as arg
+        if(i<8){
+                //If were less than 8, we should be in context
+                ppcb->ctx[i] = va_arg(ap, ulong);
+        }
+        else{ //padding
+                //If greater than 8, then we are in saddr and need to move up the padding.
+               // *saddr++ = va_arg(ap, ulong);
+	       saddr[i-8]=va_arg(ap, ulong);
+        }
     }
     va_end(ap);
-
     return pid;
 }
 

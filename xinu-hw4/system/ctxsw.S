@@ -1,3 +1,10 @@
+/*
+COSC3250 - Project 4
+@author Paige Harrill & Kayla Imanzi
+Instructor: Dr. Brylow
+TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
+*/
+
 /**
  * @file     ctxsw.s
  * @provides ctxsw
@@ -42,7 +49,57 @@ ctxsw:
 //	return address register.  Those are almost always the same value, except
 //	for the very first time we ctxsw() to a new process, when they
 //	are different.  See create() for more details.
+//        sd      a0,     CTX_A0*8(a0)
+//        sd      a1,     CTX_A1*8(a0)
+//        sd      a2,     CTX_A2*8(a0)
+//        sd      a3,     CTX_A3*8(a0)
+//        sd      a4,     CTX_A4*8(a0)
+//        sd      a5,     CTX_A5*8(a0)
+//        sd      a6,     CTX_A6*8(a0)
+//        sd      a7,     CTX_A7*8(a0)
+        sd      s0,     CTX_S0*8(a0)
+        sd      s1,     CTX_S1*8(a0)
+        sd      s2,     CTX_S2*8(a0)
+        sd      s3,     CTX_S3*8(a0)
+        sd      s4,     CTX_S4*8(a0)
+        sd      s5,     CTX_S5*8(a0)
+        sd      s6,     CTX_S6*8(a0)
+        sd      s7,     CTX_S7*8(a0)
+        sd      s8,     CTX_S8*8(a0)
+        sd      s9,     CTX_S9*8(a0)
+        sd      s10,    CTX_S10*8(a0)
+        sd      s11,    CTX_S11*8(a0)
+        sd      ra,     CTX_RA*8(a0) //doesn't matter
+        sd      sp,     CTX_SP*8(a0)
+        sd      ra,     CTX_PC*8(a0)
 
+        mv      t1,     a1
+
+        ld      a0,     CTX_A0*8(a1)
+        ld      a1,     CTX_A1*8(t1)
+        ld      a2,     CTX_A2*8(t1)
+        ld      a3,     CTX_A3*8(t1)
+        ld      a4,     CTX_A4*8(t1)
+        ld      a5,     CTX_A5*8(t1)
+        ld      a6,     CTX_A6*8(t1)
+        ld      a7,     CTX_A7*8(t1)
+        ld      s0,     CTX_S0*8(t1)
+        ld      s1,     CTX_S1*8(t1)
+        ld      s2,     CTX_S2*8(t1)
+        ld      s3,     CTX_S3*8(t1)
+        ld      s4,     CTX_S4*8(t1)
+        ld      s5,     CTX_S5*8(t1)
+        ld      s6,     CTX_S6*8(t1)
+        ld      s7,     CTX_S7*8(t1)
+        ld      s8,     CTX_S8*8(t1)
+        ld      s9,     CTX_S9*8(t1)
+        ld      s10,    CTX_S10*8(t1)
+        ld      s11,    CTX_S11*8(t1)
+        ld      ra,     CTX_RA*8(t1)
+        ld      sp,     CTX_SP*8(t1)
+        ld      t0,     CTX_PC*8(t1)
+
+        jalr    zero,   t0
 // Note: This ret line immediately returns from whence we came.  This
 //	is here as a placeholder so that you don't crash your O/S when
 //	you call ctxsw() before it is complete.  But, this line of code

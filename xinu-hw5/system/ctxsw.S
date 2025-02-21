@@ -75,7 +75,7 @@ ctxsw:
 
         mv      t1,     a1
 
-        ld      a0,     CTX_A0*8(a1)
+        ld      a0,     CTX_A0*8(t1)
         ld      a1,     CTX_A1*8(t1)
         ld      a2,     CTX_A2*8(t1)
         ld      a3,     CTX_A3*8(t1)
@@ -99,25 +99,25 @@ ctxsw:
         ld      sp,     CTX_SP*8(t1)
         ld      t0,     CTX_PC*8(t1)
 
-        jalr    zero,   t0
+//        jalr    zero,   t0
 // Note: This ret line immediately returns from whence we came.  This
 //	is here as a placeholder so that you don't crash your O/S when
 //	you call ctxsw() before it is complete.  But, this line of code
 //	is not actually a part of a completed solution.
-	ret
+//	ret
 
 // ASSIGNMENT 5 TODO:
 // Note: the following code is for the next assignment.  DO NOT uncomment it
 //      until you believe your trap handler is working.
 // Determine which privilege mode the process should be in
-//	ld t0, (**REGISTER THAT HOLDS NEW CONTEXT PROGRAM COUNTER**)
-//	beq t0, ra, switch
-//	li t4, SSTATUS_S_MODE
-//	csrc sstatus, t4
-//	csrw sepc, t0
-//
-//	sret
-//switch:
-//	ret
+	ld t0, CTX_PC*8(a0) // (**REGISTER THAT HOLDS NEW CONTEXT PROGRAM COUNTER**)
+	beq t0, ra, switch
+	li t4, SSTATUS_S_MODE
+	csrc sstatus, t4
+	csrw sepc, t0
+
+	sret
+switch:
+	ret
 
 	.end ctxsw

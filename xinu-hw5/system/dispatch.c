@@ -2,7 +2,12 @@
  * @file dispatch.c
  * @provides dispatch
  *
- */
+ * COSC 3250 Assignment 5
+ * @author Paige Harrill & Kayla Imanzi
+ * Instructor: Dr. Brylow
+ * TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
+ **/
+
 /* Embedded XINU, Copyright (C) 2008, 2023.  All rights reserved. */
 
 
@@ -24,13 +29,14 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
         cause = cause << 1;
         cause = cause >> 1;
 
+	// if call is from user mode
        	if(cause == E_ENVCALL_FROM_UMODE){
-		swi_opcode = frame[CTX_A7];
-	 	frame[CTX_A0] = syscall_dispatch(swi_opcode, (ulong*)frame[CTX_A0]);	
-		set_sepc(program_counter+4);
+		swi_opcode = frame[CTX_A7]; //grab this because syscall file
+	 	frame[CTX_A0] = syscall_dispatch(swi_opcode, (ulong*)&frame[CTX_A0]); //args start at a0, put back in	
+		set_sepc(program_counter+4);	// increment by a word
 	}
 	else if((cause==E_ENVCALL_FROM_SMODE) ||(cause==E_ENVCALL_FROM_MMODE)){
-		xtrap(frame, cause, val, program_counter);
+		xtrap(frame, cause, val, program_counter); // if from smode or mmode, go to trap
 	} 
 	/**
 	* TODO:

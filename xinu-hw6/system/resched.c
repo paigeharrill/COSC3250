@@ -9,7 +9,7 @@
 /* Embedded XINU, Copyright (C) 2008,2024.  All rights reserved. */
 
 #include <xinu.h>
-
+int pickWin(ulong total);
 ulong totalTickets(void);
 extern void ctxsw(void *, void *);
 
@@ -21,8 +21,10 @@ ulong totalTickets(void){
 	// goes through total number of processes, if ready, gets num of tickets and adds to total
 	for(i = 0; i<NPROC; i++){
 		if((&proctab[i])->state == PRREADY){
-			total += (&proctab[i])->tickets;		
+			total += (&proctab[i])->tickets;
+			//kprintf("In totalTickets, the process is ready\n\r");		
 		}
+		//kprintf("Loopnum: %d	Total:%d\n", i, total);
 	}
 	return total;
 }
@@ -33,20 +35,26 @@ int pickWin(ulong total){
 	int i;
 
 	winner = random(total);
-
+	//kprintf("winning ticket (random): %d\n\r", winner);
 	if(winner == 0){
 		winner += 1;
 	}
 
-	for(i = 0; i < NPROC; i++){
+	for(i = 0; i < NPROC-1; i++){
 		if((&proctab[i])->state == PRREADY){
 			counter += (&proctab[i])->tickets;
-
+			//kprintf("In pickwin, the process is ready	Tickets: %d \n\r", (&proctab[i])->tickets);
 			if(counter >= winner){
-				return i;
+				//kprintf("Winner %d\n", winner);
+				//return i;
+				break;
 			}
 		}
+		//kprintf("Loopnum: %d    Counter:%d\n", i, counter);
+	
 	}
+	return i;
+	
 }
 /**
  * Reschedule processor to next ready process.
@@ -80,15 +88,16 @@ syscall resched(void)
      */
     total = totalTickets();
     currpid = pickWin(total);
-    remove(currpid);
-    //currpid = dequeue(readylist);
     newproc = &proctab[currpid];
+    dequeue(readylist);
     newproc->state = PRCURR;    /* mark it currently running    */
 
 #if PREEMPT
     preempt = QUANTUM;
 #endif
+	
 
+   // kprintf("Winning PID: %d\n\r", currpid); 
     ctxsw(&oldproc->ctx, &newproc->ctx);
 
     /* The OLD process returns here when resumed. */

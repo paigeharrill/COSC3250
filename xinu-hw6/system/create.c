@@ -52,6 +52,7 @@ syscall create(void *funcaddr, ulong ssize, ulong priority, char *name, ulong na
     ppcb->state = PRSUSP;               // defined in header file for suspended state
     ppcb->stkbase = saddr;      // base of stack (bottom) = stack address - size of stack
     ppcb->stklen = ssize;               // stack size is ssize
+    ppcb->tickets = priority;
     strncpy(ppcb->name, name, PNMLEN);  // strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;

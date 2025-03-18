@@ -20,7 +20,7 @@ ulong totalTickets(void){
 
 	// goes through total number of processes, if ready, gets num of tickets and adds to total
 	for(i = 0; i<NPROC; i++){
-		if((&proctab[i])->state == PREADY){
+		if((&proctab[i])->state == PRREADY){
 			total += (&proctab[i])->tickets;		
 		}
 	}

@@ -131,27 +131,27 @@ void testcases(void)
     switch (c)
     {
     case '0':
-        ready(create((void *)test_usernone, INITSTK, "test_usernone", 0),
+        ready(create((void *)test_usernone, INITSTK, 1, "test_usernone", 0),
               RESCHED_YES);
 		break;
 
     case '1':
-        ready(create((void *)test_usergetc, INITSTK, "test_usergetc", 0),
+        ready(create((void *)test_usergetc, INITSTK, 1, "test_usergetc", 0),
               RESCHED_YES);
         break;
 
     case '2':
-        ready(create((void *)test_userputc, INITSTK, "test_userputc", 0),
+        ready(create((void *)test_userputc, INITSTK, 1, "test_userputc", 0),
               RESCHED_YES);
 		break;
 
     case '3':
         // Create three copies of a process, and let them play.
-        ready(create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL),
+        ready(create((void *)testmain, INITSTK, 1, "MAIN1", 2, 0, NULL),
               RESCHED_NO);
-        ready(create((void *)testmain, INITSTK, "MAIN2", 2, 0, NULL),
+        ready(create((void *)testmain, INITSTK, 1, "MAIN2", 2, 0, NULL),
               RESCHED_NO);
-        ready(create((void *)testmain, INITSTK, "MAIN3", 2, 0, NULL),
+        ready(create((void *)testmain, INITSTK, 1, "MAIN3", 2, 0, NULL),
               RESCHED_YES);
         while (numproc > 1)
             resched();

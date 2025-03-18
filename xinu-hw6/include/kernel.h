@@ -25,7 +25,7 @@ syscall kgetc(void);
 syscall kcheckc(void);
 syscall kvprintf(const char *fmt, va_list va);
 
-syscall create(void *, ulong, ulong, char *, ulong, ...);
+syscall create(void *, ulong, uint, char *, ulong, ...);
 syscall kill(pid_typ);
 syscall ready(pid_typ, bool);
 syscall resched(void);
@@ -35,7 +35,7 @@ extern void _start(void);
 // Counter for unget buffer
 extern unsigned int bufp;
 
-#define PREEMPT 	FALSE
+#define PREEMPT 	TRUE
 #define SEED		1431    /* seed for random number generator */
 
 

@@ -111,6 +111,40 @@ void printpcb(int pid)
     kprintf("Stack length of process   : %8u \r\n", ppcb->stklen);
 }
 
+void bigdog(void) {
+	kprintf("Big dog running.../r/n");
+	while(1)
+		;
+}
+
+void littledog(void) {
+	kprintf("Little dog runing...\r\n");
+}
+
+void test_preemption(void) {
+	int bigdog_pid, littledog_pid;
+
+	kprintf("Starting pre-emption test...\r\n");
+
+	//create bigdogprocess
+	bigdog_pid = create((void *)bigdog, INITSTK, 1, "bigdog", 0);
+
+	//create littledog process
+	littledog_pid = create((void *)littledog, INITSTK, 1, "littledog", 0);
+
+	//run bigdog first
+	ready(bigdog_pid, RESCHED_YES);
+
+	//run littledog after
+	ready(littledog_pid, RESCHED_YES);
+
+	//wait for processes to finish
+	while (numproc > 1)
+		resched();
+	    
+	kprintf("Pre-emption test complete.\r\n");
+}
+
 /**
  * testcases - called after initialization completes to test things.
  */

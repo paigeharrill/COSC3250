@@ -122,7 +122,7 @@ static int sysinit(void)
     strncpy(ppcb->name, "main", 4);
     ppcb->stkbase       = (void *)&_end;
     ppcb->stklen = (ulong)memheap - (ulong)&_end;
-    //ppcb->tickets = 1;
+    ppcb->tickets = 1;
     currpid = NULLPROC;
 
     readylist = newqueue();

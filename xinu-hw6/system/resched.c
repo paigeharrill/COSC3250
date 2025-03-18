@@ -36,23 +36,24 @@ int pickWin(ulong total){
 
 	winner = random(total);
 	//kprintf("winning ticket (random): %d\n\r", winner);
-	if(winner == 0){
+	/*if(winner == 0){
 		winner += 1;
-	}
+	}*/
 
-	for(i = 0; i < NPROC-1; i++){
+	for(i = 0; i < NPROC; i++){
 		if((&proctab[i])->state == PRREADY){
 			counter += (&proctab[i])->tickets;
 			//kprintf("In pickwin, the process is ready	Tickets: %d \n\r", (&proctab[i])->tickets);
-			if(counter >= winner){
+			if(counter > winner){
 				//kprintf("Winner %d\n", winner);
 				//return i;
 				break;
 			}
 		}
 		//kprintf("Loopnum: %d    Counter:%d\n", i, counter);
-	
+		
 	}
+	//kprintf("NPROC: %d\n\r", NPROC);
 	return i;
 	
 }
@@ -88,7 +89,11 @@ syscall resched(void)
      */
     total = totalTickets();
     currpid = pickWin(total);
+    //if (currpid < 0 || currpid >= NPROC) {
+//	    currpid = dequeue(readylist);		//make sure we don't go out of bounds
+  //  }
     newproc = &proctab[currpid];
+
     dequeue(readylist);
     newproc->state = PRCURR;    /* mark it currently running    */
 
@@ -97,7 +102,8 @@ syscall resched(void)
 #endif
 	
 
-   // kprintf("Winning PID: %d\n\r", currpid); 
+    //kprintf("Winning PID: %d\n\r", currpid);
+    //kprintf("[%d  %d]\n\r", oldproc-proctab, newproc-proctab); 
     ctxsw(&oldproc->ctx, &newproc->ctx);
 
     /* The OLD process returns here when resumed. */

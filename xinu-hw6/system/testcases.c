@@ -112,13 +112,15 @@ void printpcb(int pid)
 }
 
 void bigdog(void) {
-	kprintf("Big dog running.../r/n");
+	kprintf("Big dog running...\r\n");
 	while(1)
 		;
 }
 
 void littledog(void) {
 	kprintf("Little dog runing...\r\n");
+	while(1)
+		;
 }
 
 void test_preemption(void) {
@@ -156,6 +158,8 @@ void testcases(void)
     kprintf("1) Test user_getc syscall\r\n");
     kprintf("2) Test user_putc syscall\r\n");
     kprintf("3) Create three processes that test user_yield syscall\r\n");
+    kprintf("P) Test preemption \r\n");
+
 
     kprintf("===TEST BEGIN===\r\n");
 
@@ -190,6 +194,12 @@ void testcases(void)
         while (numproc > 1)
             resched();
         break;
+
+    case 'P':
+	ready(create((void *)test_preemption, INITSTK, 1, "test_preemption", 0),
+	      RESCHED_YES);
+	break;
+
 
     default:
         break;

@@ -111,6 +111,7 @@ void printpcb(int pid)
     kprintf("Stack length of process   : %8u \r\n", ppcb->stklen);
 }
 
+// first attempt at testing preemption in following 3 functions
 void bigdog(void) {
 	kprintf("Big dog running...\r\n");
 	while(1)
@@ -196,8 +197,15 @@ void testcases(void)
         break;
 
     case 'P':
-	ready(create((void *)test_preemption, INITSTK, 1, "test_preemption", 0),
-	      RESCHED_YES);
+	// testing preemption and watching what happens
+	ready(create((void *)testbigargs, INITSTK, 15, "BigArgs", 8,0x00000000, 0x11111111, 0x22222222, 0x33333333, 0x44444444, 
+			0x55555555, 0x66666666, 0x77777777, 0x88888888),RESCHED_NO);
+
+	ready(create((void *)testmain, INITSTK, 5, "MAIN4", 2, 0, NULL),  RESCHED_NO);
+	
+	while (numproc>1)
+		resched();
+	
 	break;
 
 

@@ -6,8 +6,8 @@
  ../include/stdlib.h ../include/string.h ../include/hart.h \
  ../include/platform.h ../include/interrupt.h ../include/timer.h \
  ../include/clock.h ../include/endianness.h ../include/stdint.h \
- ../include/proc.h ../include/queue.h ../include/syscall.h \
- ../include/allwinnerd1.h ../include/random.h
+ ../include/safemem.h ../include/proc.h ../include/queue.h \
+ ../include/syscall.h ../include/allwinnerd1.h ../include/random.h
 ../include/xinu.h:
 ../include/kernel.h:
 ../include/stddef.h:
@@ -29,6 +29,7 @@
 ../include/clock.h:
 ../include/endianness.h:
 ../include/stdint.h:
+../include/safemem.h:
 ../include/proc.h:
 ../include/queue.h:
 ../include/syscall.h:

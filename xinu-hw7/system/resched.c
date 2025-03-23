@@ -11,7 +11,7 @@
 #include <xinu.h>
 int pickWin(ulong total);
 ulong totalTickets(void);
-extern void ctxsw(void *, void *);
+extern void ctxsw(void *, void *, ulong);
 
 // finds the total number of tickets in the currently ready processes
 ulong totalTickets(void){
@@ -104,7 +104,7 @@ syscall resched(void)
 
     //kprintf("Winning PID: %d\n\r", currpid);
     //kprintf("[%d  %d]\n\r", oldproc-proctab, newproc-proctab); 
-    ctxsw(&oldproc->ctx, &newproc->ctx);
+    ctxsw(&oldproc->ctx, &newproc->ctx, MAKE_SATP(currpid, newproc->pagetable));
 
     /* The OLD process returns here when resumed. */
     return OK;

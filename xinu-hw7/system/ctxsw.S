@@ -74,6 +74,7 @@ ctxsw:
         sd      ra,     CTX_PC*8(a0)
 
         mv      t1,     a1
+	mv 	t2,	a2
 
         ld      a0,     CTX_A0*8(t1)
         ld      a1,     CTX_A1*8(t1)
@@ -115,7 +116,8 @@ ctxsw:
 	li t4, SSTATUS_S_MODE
 	csrc sstatus, t4
 	csrw sepc, t0
-
+	csrw satp, t2
+	sfence.vma zero, zero
 	sret
 switch:
 	ret

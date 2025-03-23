@@ -48,6 +48,33 @@ void printPageTable(pgtbl pagetable)
 	* table.  If it is a leaf, print the page table entry and the
 	* physical address is maps to. 
 	*/
+	static int level = 0;
+	//kprintf("in print function\n\r");
+	for (int i = 0; i < 512; i++){
+		char R = '-', W = '-', X = '-';
+		if(pagetable[i] & PTE_V){
+			ulong entry = pagetable[i];
+			ulong phys_addr = PTE2PA(entry);
+			if(entry & PTE_R){
+				R = 'R';
+			}
+			if(entry & PTE_W){
+				W = 'W';
+			}
+			if(entry & PTE_X){
+				X = 'X';
+			}
+			if(entry & (PTE_R | PTE_W | PTE_X)){
+				kprintf("%*sEntry %d -> PA: 0x%lx \t%c %c %c\n\r", level*4, "", i, phys_addr, R, W, X);
+			}
+			else{
+				kprintf("%*sEntry %d -> Next level table at 0x%lx\n\r", level*4, "",  i, phys_addr);
+				level++;
+				printPageTable((pgtbl)phys_addr);
+				level--;
+			}
+		}
+	}
 }
 
 /**
@@ -65,6 +92,8 @@ void testcases(void)
 	switch (c)
 	{
 		case '0':
+			pgtbl samplePage = createFakeTable();
+			printPageTable(samplePage);
 			// TODO: Write a testcase that creates a user process
 			// and prints out it's page table
 			break;

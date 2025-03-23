@@ -82,9 +82,38 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     * the leaf page (don't forget to set the valid bit!)
     */
 
+    ulong *pte;
+    ulong index;
+    pgtbl level = pagetable;
+
+    for(int i = 2; i >= 0; i--){
+    	index = PX(i, vaddr);
+	pte = &level[index];
+
+	// check if the page table entry is valid
+	if (!(*pte & PTE_V)){
+	   pgtbl newTable = (pgtbl)pgalloc();
+	   if (newTable == NULL){
+	       return SYSERR;
+	   }
+	   // store the new page table in the current level
+           *pte = PA2PTE(newTable) | PTE_V;
+	}
+
+	// move to next level
+	level = (pgtbl)PTE2PA(*pte);
+    }    
+
+    // set final mapping at leaf level
+    index = PX(0, vaddr);
+    pte = &level[index];
+    *pte = PA2PTE(paddr) | attr | PTE_V;
+
+    // flush TLB entry
+    sfence_vma();
     //  DEBUGGING LINE:
-    //  kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n",
-    //          pagetable, vaddr, paddr, attr);
+      kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n",
+              pagetable, vaddr, paddr, attr);
 
     return OK;
 }

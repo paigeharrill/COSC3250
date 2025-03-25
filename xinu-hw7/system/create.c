@@ -38,6 +38,7 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     ssize = (ulong)((((ulong)(ssize + 3)) >> 2) << 2);
     /* round up to even boundary    */
     saddr = (ulong *)pgalloc();     /* allocate new stack and pid   */
+    
     pid = newpid();
     /* a little error checking      */
     if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid))
@@ -57,12 +58,13 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     strncpy(ppcb->name, name, PNMLEN);  // strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
    
     saddr = (ulong*)(((ulong)saddr)+PAGE_SIZE-sizeof(ulong)); 
+    ulong* top = saddr;
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
     *--saddr = pid;
     *--saddr = ppcb->stklen;
     *--saddr = (ulong)ppcb->stkbase;
-
+	
     /* Handle variable number of arguments passed to starting function   */
     if (nargs)
     {
@@ -76,7 +78,7 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     }
     // TODO: Initialize process context.
     ppcb->ctx[CTX_RA] = (ulong) userret;
-    ppcb->ctx[CTX_SP] = (ulong) saddr;	// somethin with this
+    ppcb->ctx[CTX_SP] = (ulong)(PROCSTACKVADDR+PAGE_SIZE-(top-saddr));	// somethin with this
     ppcb->ctx[CTX_PC] = (ulong) funcaddr;
     ppcb->pagetable = vm_userinit(pid, saddr);
     ppcb->swaparea[CTX_KERNSATP] = (ulong)MAKE_SATP(0, _kernpgtbl);

@@ -15,6 +15,15 @@
 /* This fake page table will allow you to test your printPageTable function
  * without having paging completely working.
  */
+
+int test_usernone(void) {
+        kprintf("This is a test of ...");
+        user_none();
+        kprintf("user_none() syscall\r\n");
+
+        return 0;
+}
+
 pgtbl createFakeTable(void){
 	pgtbl root = pgalloc();
 	pgtbl lvl1 = pgalloc();
@@ -83,7 +92,10 @@ void printPageTable(pgtbl pagetable)
 void testcases(void)
 {
 	uchar c;
-
+	kprintf("0) Test print page table\r\n");
+    	kprintf("1) Test user process restricted memory access\r\n");
+    	kprintf("2) Test kernel permissions\r\n");
+	kprintf("3) Test null pointer exception\r\n");
 	kprintf("===TEST BEGIN===\r\n");
 
 	// TODO: Test your operating system!
@@ -94,19 +106,37 @@ void testcases(void)
 		case '0':
 			pgtbl samplePage = createFakeTable();
 			printPageTable(samplePage);
+
+			pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
+			ready(pid, RESCHED_NO);
+			printPageTable(proctab[pid].pagetable);
 			// TODO: Write a testcase that creates a user process
 			// and prints out it's page table
 			break;
 		case '1':
+			kprintf("\nTesting user process restricted memory access\n");
+			void (*user_func)(void) = (void (*)(void))0xFFFFFFFF80000000;
+			kprintf("Trying to execute user function at 0xFFFFFFFF80000000\n");
+			user_func(); // should trigger exception
 			// TODO: Write a testcase that demonstrates a user
 			// process cannot access certain areas of memory
 			break;
 		case '2':
+			//kprintf("\nTesting kernel permissions\n");
+			//extern int SYSCALL_READ;
+			//kprintf("Kernel variable value: %d\n", kernel_var);
+			//kprintf("Attempting to modify variable\n");
+			//SYSCALL_READ = 1234; // should fail
 			// TODO: Write a testcase that demonstrates a user
 			// process can read kernel variables but cannot write
 			// to them
 			break;
 		case '3':
+			kprintf("\nTesting Null Pointer Exception\n");
+			int *null_ptr = NULL;
+			kprintf("Accessing NULL pointer\n");
+			int value = *null_ptr;
+			kprintf("Value at NULL: %d\n", value); // should break;
 			// TODO: Extra credit! Add handling in xtrap to detect
 			// and print out a Null Pointer Exception.  Write a
 			// testcase that demonstrates your OS can detect a
@@ -115,7 +145,7 @@ void testcases(void)
 		default:
 			break;
 	}
-
+	
 	kprintf("\r\n===TEST END===\r\n");
 	return;
 }

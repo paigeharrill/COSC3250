@@ -22,8 +22,10 @@
  * @param program_counter  The value of the sepc register 
  */
 
-void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
+ulong dispatch(ulong cause, ulong val, ulong *swaparea, ulong *program_counter) {
     ulong swi_opcode;
+    pcb *ppcb; 
+    ppcb = &proctab[currpid]; 
     
     if((long)cause > 0) {
         cause = cause << 1;
@@ -31,12 +33,12 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 
 	// if call is from user mode
        	if(cause == E_ENVCALL_FROM_UMODE){
-		swi_opcode = frame[CTX_A7]; //grab this because syscall file
-	 	frame[CTX_A0] = syscall_dispatch(swi_opcode, (ulong*)&frame[CTX_A0]); //args start at a0, put back in	
+		swi_opcode = ppcb->swaparea[CTX_A7]; //grab this because syscall file
+	 	ppcb->swaparea[CTX_A0] = syscall_dispatch(swi_opcode, (ulong*)&(ppcb->swaparea[CTX_A0])); //args start at a0, put back in	
 		set_sepc(program_counter+4);	// increment by a word
 	}
 	else if((cause==E_ENVCALL_FROM_SMODE) ||(cause==E_ENVCALL_FROM_MMODE)){
-		xtrap(frame, cause, val, program_counter); // if from smode or mmode, go to trap
+		xtrap(ppcb->swaparea, cause, val, program_counter); // if from smode or mmode, go to trap
 	} 
 	/**
 	* TODO:
@@ -72,5 +74,6 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
         	}
     	}
     }
+    return MAKE_SATP(currpid, proctab[currpid].pagetable);
 }
 

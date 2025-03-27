@@ -2,9 +2,9 @@
  * @file map.c
  * @provides mapPage, mapAddressRange
  *
- * Modified by:
+ * Modified by: Paige Harrill & Kayla Imanzi
  *
- * TA-BOT:MAILTO
+ * TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
  */
 /* Embedded Xinu, Copyright (C) 2013, 2025.  All rights reserved. */
 
@@ -112,8 +112,8 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     // flush TLB entry
     sfence_vma();
     //  DEBUGGING LINE:
-      kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n",
-              pagetable, vaddr, paddr, attr);
+    //  kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n",
+      //        pagetable, vaddr, paddr, attr);
 
     return OK;
 }

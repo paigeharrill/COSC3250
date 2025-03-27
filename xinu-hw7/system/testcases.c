@@ -3,9 +3,9 @@
  * @provides testcases
  *
  *
- * Modified by:	
- *
- * TA-BOT:MAILTO 
+ * Modified by: Paige Harrill & Kayla Imanzi	
+c *
+ * TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
  *
  */
 /* Embedded XINU, Copyright (C) 2023.  All rights reserved. */
@@ -15,6 +15,14 @@
 /* This fake page table will allow you to test your printPageTable function
  * without having paging completely working.
  */
+void test_useraccess(void){
+	kprintf("Attempting to read a kernel variable");
+	extern ulong *_kernsp;
+        kprintf("Kernel variable value: %u\n\r", _kernsp);
+        kprintf("Attempting to modify variable\n\r");
+        _kernsp = 1234; // should fail
+        kprintf("Updated: %u\n\r", _kernsp);
+}
 
 int test_usernone(void) {
         kprintf("This is a test of ...");
@@ -107,9 +115,9 @@ void testcases(void)
 			pgtbl samplePage = createFakeTable();
 			printPageTable(samplePage);
 
-			pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
-			ready(pid, RESCHED_NO);
-			printPageTable(proctab[pid].pagetable);
+			//pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
+			//ready(pid, RESCHED_NO);
+			//printPageTable(proctab[pid].pagetable);
 			// TODO: Write a testcase that creates a user process
 			// and prints out it's page table
 			break;
@@ -118,15 +126,14 @@ void testcases(void)
 			void (*user_func)(void) = (void (*)(void))0xFFFFFFFF80000000;
 			kprintf("Trying to execute user function at 0xFFFFFFFF80000000\n");
 			user_func(); // should trigger exception
+			kprintf("This shouldn't print");
 			// TODO: Write a testcase that demonstrates a user
 			// process cannot access certain areas of memory
 			break;
 		case '2':
-			//kprintf("\nTesting kernel permissions\n");
-			//extern int SYSCALL_READ;
-			//kprintf("Kernel variable value: %d\n", kernel_var);
-			//kprintf("Attempting to modify variable\n");
-			//SYSCALL_READ = 1234; // should fail
+			kprintf("\nTesting kernel permissions\n\r");
+			pid_typ pid2 = create((void*)test_useraccess, INITSTK, 10, "test_useraccess", 0);
+			ready(pid2, RESCHED_YES);
 			// TODO: Write a testcase that demonstrates a user
 			// process can read kernel variables but cannot write
 			// to them

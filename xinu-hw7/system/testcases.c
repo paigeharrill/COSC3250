@@ -16,7 +16,7 @@ c *
  * without having paging completely working.
  */
 void test_useraccess(void){
-	kprintf("Attempting to read a kernel variable");
+	kprintf("Attempting to read a kernel variable\n\r");
 	extern ulong *_kernsp;
         kprintf("Kernel variable value: %u\n\r", _kernsp);
         kprintf("Attempting to modify variable\n\r");
@@ -115,9 +115,9 @@ void testcases(void)
 			pgtbl samplePage = createFakeTable();
 			printPageTable(samplePage);
 
-			//pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
-			//ready(pid, RESCHED_NO);
-			//printPageTable(proctab[pid].pagetable);
+			pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
+			ready(pid, RESCHED_NO);
+			printPageTable(proctab[pid].pagetable);
 			// TODO: Write a testcase that creates a user process
 			// and prints out it's page table
 			break;

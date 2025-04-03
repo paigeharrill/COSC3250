@@ -86,7 +86,7 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     ulong index;
     pgtbl level = pagetable;
 
-    for(int i = 2; i >= 0; i--){
+    for(int i = 2; i > 0; i--){
     	index = PX(i, vaddr);
 	pte = &level[index];
 
@@ -98,6 +98,7 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
 	   }
 	   // store the new page table in the current level
            *pte = PA2PTE(newTable) | PTE_V;
+	   sfence_vma();
 	}
 
 	// move to next level

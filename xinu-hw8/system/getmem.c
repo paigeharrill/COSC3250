@@ -43,5 +43,35 @@ void *getmem(ulong nbytes)
      *      - return memory address if successful
      */
 
+    curr = *head;
+    prev = NULL;
+    memhead *freehead = &freelist;
+
+    while(curr != NULL){
+	    // if matches the size requirements
+    	if(curr->length >= nbytes){
+		// create leftover block of size whatever we don't need
+		leftover = (struct memblock *)(nbytes + ((ulong)curr));
+		leftover->length = (curr->length) - nbytes;
+
+		// length of the free list
+		freehead->length = freehead->length - nbytes;
+
+		// set next of leftover to next from current and previous to the leftover
+		leftover->next = curr->next;
+		prev->next = leftover;
+
+		// set length of current to nbytes (which was requested)
+		curr->length = nbytes;
+		
+		// return the current which is now the right size
+		return (curr);
+	}
+	// traversing list
+	prev = curr;
+	curr = curr->next
+    }
+
+
     return (void *)SYSERR;
 }

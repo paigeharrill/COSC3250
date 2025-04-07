@@ -47,5 +47,24 @@ syscall freemem(void *memptr, ulong nbytes)
      *      - Coalesce with next block if adjacent
      */
 
+    next = (struct memblock *)head;
+    prev = (struct memblock *)&freelist;
+
+    while(next != NULL){
+    	if((prev < block) && (block < next)){
+		prev->next = block;
+		block->next = next;
+
+		block->length = nbytes;
+
+		freelist.length = freelist.length + nbytes;
+		break;
+
+	}
+
+	prev = next;
+	next = next->next;
+
+    }
     return OK;
 }

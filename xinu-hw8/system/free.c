@@ -24,5 +24,30 @@ syscall free(void *ptr)
      *      3) call freemem on the block with its length
      */
 
+    if(ptr==NULL){
+    	return SYSERR;
+    }
+
+    block = (struct memblock*)ptr;
+    --block;
+
+    if (((void *)block < (void*)memheap) || ((void*)block > (void*)platform.maxaddr)){
+    	return SYSERR;
+    }
+
+    if (block->length == 0){
+    	return SYSERR;
+    }
+
+    if ((void*)((ulong)block + block->length) > (void*)platform.maxaddr){
+    	return SYSERR;
+    }
+
+    if((void*)block->next != (void*)&(block->next)){
+    	return SYSERR;
+    }
+
+    freemem(block, block->length);
+
     return OK;
 }

@@ -36,5 +36,16 @@ void *malloc(ulong size)
       *      3) Set accounting info in pmem
       */
 
-    return (void *)SYSERR;
+    pmem->length = pmem->length + 1;
+
+    pmem = getmem(size);
+
+    if (pmem = (void*)SYSERR){
+    	return NULL;
+    }
+
+    pmem->length = size;
+
+    return (void*)(pmem);
+    //return (void *)SYSERR;
 }

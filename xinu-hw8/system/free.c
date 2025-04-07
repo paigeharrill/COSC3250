@@ -28,9 +28,10 @@ syscall free(void *ptr)
     	return SYSERR;
     }
 
-    block = (struct memblock*)ptr;
-    --block;
+    // step back to get full memblock header
+    block = ((struct memblock *)ptr) -1;
 
+    // basic checks
     if (((void *)block < (void*)memheap) || ((void*)block > (void*)platform.maxaddr)){
     	return SYSERR;
     }
@@ -39,6 +40,7 @@ syscall free(void *ptr)
     	return SYSERR;
     }
 
+    // overflow check
     if ((void*)((ulong)block + block->length) > (void*)platform.maxaddr){
     	return SYSERR;
     }

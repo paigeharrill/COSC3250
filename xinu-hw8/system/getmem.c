@@ -43,33 +43,39 @@ void *getmem(ulong nbytes)
      *      - return memory address if successful
      */
 
-    curr = *head;
-    prev = NULL;
-    memhead *freehead = &freelist;
+    curr = freelist.next;
+    prev = (memblk *)&freelist;
 
     while(curr != NULL){
 	    // if matches the size requirements
     	if(curr->length >= nbytes){
-		// create leftover block of size whatever we don't need
-		leftover = (struct memblock *)(nbytes + ((ulong)curr));
-		leftover->length = (curr->length) - nbytes;
+		prev->next = curr.next;
+		freelist.length -= nbytes;
 
-		// length of the free list
-		freehead->length = freehead->length - nbytes;
-
-		// set next of leftover to next from current and previous to the leftover
+		curr->next = (memblk*)&curr->next; // mark allocated
+		return (void*)(curr + 1);	// return pointer
+	} // split the block if there will be leftover
+       	else if(curr->length > nbytes){
+		leftover = (memblk*)((ulong)curr + nybtes);
+		leftover->length = curr->length - nbytes;
 		leftover->next = curr->next;
-		prev->next = leftover;
 
-		// set length of current to nbytes (which was requested)
+		prev->next = leftover;
+		freelist.length -= nbytes;
+
 		curr->length = nbytes;
-		
-		// return the current which is now the right size
-		return (curr);
+		curr->next = (memblk *)&curr->next;	// mark allocated
+		return (void*)(curr + 1);	// return pointer
 	}
+
 	// traversing list
 	prev = curr;
 	curr = curr->next
+    }
+
+    // if no block, extend heap
+    if (user_incheap(nbytes) == OK){
+    	return getmem(nbytes);
     }
 
 

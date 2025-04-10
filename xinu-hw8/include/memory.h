@@ -12,9 +12,9 @@
 //#include <spinlock.h>
 
 /* roundmb - round address up to size of memblock  */
-#define roundmb(x)  (void *)( (7 + (ulong)(x)) & ~0x07 )
+#define roundmb(x)  (void *)( ((sizeof(ulong)-1) + (ulong)(x)) & ~(sizeof(ulong)-1) )
 /* truncmb - truncate address down to size of memblock */
-#define truncmb(x)  (void *)( ((ulong)(x)) & ~0x07 )
+#define truncmb(x)  (void *)( ((ulong)(x)) & ~(sizeof(ulong)-1) )
 
 /**
  * Structure for a block of memory.
@@ -34,11 +34,7 @@ typedef struct memhead
     ulong length;               /* non-constant; current size of list */
     ulong base;                 /* beginning address of free list     */
     ulong bound;                /* fixed value; total size of list    */
-    //spinlock_t memlock;         /* lock for mutual exclusion          */
 } memhead;
-
-extern memhead freelist[];      /* heads of free memory lists         */
-                                /* one freelist for each core         */
 
 /* Other memory data */
 
@@ -50,8 +46,7 @@ extern void *_ctxsws;           /* start of ctxsw                     */
 extern void *_ctxswe;           /* end of ctxsw                       */
 extern void *_interrupts;       /* start of interrupts                */
 extern void *_interrupte;       /* end of interrupts                  */
-extern ulong *_kernpgtbl;	/* kernel page table                  */
-extern ulong *_kernsp;          /* kernel stack pointer               */
+extern ulong *_kernpgtbl;       /* kernel page table                  */
 
 /* Memory function prototypes */
 void *getmem(uint nbytes);

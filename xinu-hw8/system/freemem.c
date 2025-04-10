@@ -21,7 +21,7 @@
  *      ::OK on success; ::SYSERR on failure.  This function can only fail
  *      because of memory corruption or specifying an invalid memory block.
  */
-syscall freemem(void *memptr, ulong nbytes)
+syscall freemem(void *memptr, uint nbytes)
 {
     register struct memblock *block, *next, *prev;
     struct memhead *head = NULL;
@@ -29,14 +29,14 @@ syscall freemem(void *memptr, ulong nbytes)
 
     /* make sure block is in heap */
     if ((0 == nbytes)
-        || ((ulong)memptr < (ulong)PROCHEAPADDR))
+        || ((ulong)memptr < (ulong)proctab[currpid].heaptop))
     {
         return SYSERR;
     }
 
-    head = (struct memhead *)PROCHEAPADDR;
+    head = (struct memhead *)proctab[currpid].heaptop;
     block = (struct memblock *)memptr;
-    nbytes = (ulong)roundmb(nbytes);
+    nbytes = (uint)roundmb(nbytes);
 
     /* TODO:
      *      - Find where the memory block should
@@ -46,34 +46,33 @@ syscall freemem(void *memptr, ulong nbytes)
      *      - Coalesce with previous block if adjacent
      *      - Coalesce with next block if adjacent
      */
-
-    next = (struct memblock *)freelist.next;
-    prev = (struct memblock *)&freelist;
+    next = (struct memblock *)pgfreelist->next;
+    prev = (struct memblock *)&pgfreelist;
 
     // traverse to find correct position in address ordered free list
     while(next != NULL && (ulong)next < (ulong)block){
-    	prev = next;
-	next = next->next;
+        prev = next;
+        next = next->next;
     }
 
     // calculate top of the block to be freed
-    top = (ulong)block+nybtes;
+    top = (ulong)block+nbytes;
 
     if (((ulong)prev + prev->length) > (ulong)block){
-    	return SYSERR;
+        return SYSERR;
     }
 
     if ((next != NULL) && (top > (ulong)next)){
-    	return SYSERR;
+        return SYSERR;
     }
 
     // coalesce with next block if adjacent
     if ((next != NULL) && (top == (ulong)next)){
-    	block->length = nbytes + next -> length;
-	block->next = next->next;
+        block->length = nbytes + next -> length;
+        block->next = next->next;
     } else{
-    	block->length = nbytes;
-	block->next = next;
+        block->length = nbytes;
+        block->next = next;
     }
 
     // coalesce with previous block if adjacent
@@ -85,7 +84,7 @@ syscall freemem(void *memptr, ulong nbytes)
     }
 
     // update total length
-    freelist.length += nbytes;
+    pgfreelist->size += nbytes;
 
     return OK;
 }

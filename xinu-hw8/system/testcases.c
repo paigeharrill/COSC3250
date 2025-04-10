@@ -17,11 +17,11 @@ c *
  */
 void test_useraccess(void){
 	kprintf("Attempting to read a kernel variable\n\r");
-	extern ulong *_kernsp;
-        kprintf("Kernel variable value: %u\n\r", _kernsp);
+	extern uint bufp;
+        kprintf("Bufp: %u\n\r", bufp);
         kprintf("Attempting to modify variable\n\r");
-        _kernsp = 1234; // should fail
-        kprintf("Updated: %u\n\r", _kernsp);
+        bufp = 1234; // should fail
+        kprintf("Updated: %u\n\r", bufp);
 }
 
 int test_usernone(void) {
@@ -112,9 +112,8 @@ void testcases(void)
 	switch (c)
 	{
 		case '0':
-			pgtbl samplePage = createFakeTable();
-			printPageTable(samplePage);
-
+			//pgtbl samplePage = createFakeTable();
+			//printPageTable(samplePage);
 			pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
 			ready(pid, RESCHED_NO);
 			printPageTable(proctab[pid].pagetable);
@@ -152,7 +151,9 @@ void testcases(void)
 		default:
 			break;
 	}
-	
+	while(numproc>1){
+		resched();
+	}	
 	kprintf("\r\n===TEST END===\r\n");
 	return;
 }

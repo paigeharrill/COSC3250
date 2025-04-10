@@ -21,7 +21,7 @@
  *      The returned pointer is guaranteed to be 8-byte aligned.  Free the block
  *      with memfree() when done with it.
  */
-void *getmem(ulong nbytes)
+void *getmem(uint nbytes)
 {
     register memblk *prev, *curr, *leftover;
 
@@ -31,8 +31,8 @@ void *getmem(ulong nbytes)
     }
 
     /* round to multiple of memblock size   */
-    nbytes = (ulong)roundmb(nbytes);
-    struct memhead *head = (memhead *)PROCHEAPADDR;
+    nbytes = (uint)roundmb(nbytes);
+    struct memhead *head = (memhead *)proctab[currpid].heaptop;
 
     /* TODO:
      *      - Traverse through the freelist
@@ -42,42 +42,40 @@ void *getmem(ulong nbytes)
      *        with the request to add more pages to our process heap
      *      - return memory address if successful
      */
-
     curr = freelist.next;
     prev = (memblk *)&freelist;
 
     while(curr != NULL){
-	    // if matches the size requirements
-    	if(curr->length >= nbytes){
-		prev->next = curr.next;
-		freelist.length -= nbytes;
+            // if matches the size requirements
+        if(curr->length >= nbytes){
+                prev->next = curr.next;
+                freelist.length -= nbytes;
 
-		curr->next = (memblk*)&curr->next; // mark allocated
-		return (void*)(curr + 1);	// return pointer
-	} // split the block if there will be leftover
-       	else if(curr->length > nbytes){
-		leftover = (memblk*)((ulong)curr + nybtes);
-		leftover->length = curr->length - nbytes;
-		leftover->next = curr->next;
+                curr->next = (memblk*)&curr->next; // mark allocated
+                return (void*)(curr + 1);       // return pointer
+        } // split the block if there will be leftover
+        else if(curr->length > nbytes){
+                leftover = (memblk*)((ulong)curr + nybtes);
+                leftover->length = curr->length - nbytes;
+                leftover->next = curr->next;
 
-		prev->next = leftover;
-		freelist.length -= nbytes;
+                prev->next = leftover;
+                freelist.length -= nbytes;
 
-		curr->length = nbytes;
-		curr->next = (memblk *)&curr->next;	// mark allocated
-		return (void*)(curr + 1);	// return pointer
-	}
+                curr->length = nbytes;
+                curr->next = (memblk *)&curr->next;     // mark allocated
+                return (void*)(curr + 1);       // return pointer
+        }
 
-	// traversing list
-	prev = curr;
-	curr = curr->next
+        // traversing list
+        prev = curr;
+        curr = curr->next
     }
 
     // if no block, extend heap
     if (user_incheap(nbytes) == OK){
-    	return getmem(nbytes);
+        return getmem(nbytes);
     }
-
 
     return (void *)SYSERR;
 }

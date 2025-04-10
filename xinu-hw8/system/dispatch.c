@@ -24,7 +24,7 @@
 
 ulong dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
     ulong swi_opcode;
-    pcb *ppcb; 
+    pcb *ppcb = NULL; 
     ppcb = &proctab[currpid]; 
     frame = ppcb->swaparea;
     
@@ -40,7 +40,7 @@ ulong dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 		set_sepc((ulong)program_counter+4);	// increment by a word
 	}
 	else if((cause==E_ENVCALL_FROM_SMODE) ||(cause==E_ENVCALL_FROM_MMODE)){
-		xtrap(ppcb->swaparea, cause, val, program_counter); // if from smode or mmode, go to trap
+		xtrap(frame, cause, val, program_counter); // if from smode or mmode, go to trap
 	} 
 	/**
 	* TODO:

@@ -35,7 +35,6 @@ void *malloc(ulong size)
       *         - handle possible error (SYSERR) from getmem...
       *      3) Set accounting info in pmem
       */
-
     // making room for accounting info
     size += sizeof(struct memblock);
 
@@ -43,7 +42,7 @@ void *malloc(ulong size)
     pmem = (struct memblock*)getmem(size);
 
     if ((void*)pmem == (void*)SYSERR){
-    	return NULL;
+        return NULL;
     }
 
     // set accounting info
@@ -51,5 +50,6 @@ void *malloc(ulong size)
     pmem->next = (struct memblock *)&pmem->next;
 
     return (void*)(pmem+1);
+    
     //return (void *)SYSERR;
 }

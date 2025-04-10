@@ -56,6 +56,7 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     ppcb->tickets = priority;
 
     strncpy(ppcb->name, name, PNMLEN);  // strncpy(pointer to string (pcbr name), parameter (create() arg for name), length)
+    ppcb->pagetable = vm_userinit(pid, saddr);
    
     saddr = (ulong*)(((ulong)saddr)+PAGE_SIZE-sizeof(ulong)); 
    // ulong* top = saddr;
@@ -80,9 +81,6 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     ppcb->ctx[CTX_RA] = (ulong) userret;
     ppcb->ctx[CTX_SP] = (PROCSTACKVADDR)|((ulong)saddr & 0xFFF);	// somethin with this
     ppcb->ctx[CTX_PC] = (ulong) funcaddr;
-    ppcb->pagetable = vm_userinit(pid, saddr);
-    ppcb->swaparea[CTX_KERNSATP] = (ulong)MAKE_SATP(0, _kernpgtbl);
-    ppcb->swaparea[CTX_KERNSP] = (ulong)_kernsp;
     // TODO:  Place arguments into context and/or activation record.
     //        See K&R 7.3 for example using va_start, va_arg and
     //        va_end macros for variable argument functions.

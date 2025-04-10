@@ -14,7 +14,7 @@
  * @param ptr
  *      A pointer to the memory block to free.
  */
-syscall free(void *ptr)
+void free(void *ptr)
 {
     struct memblock *block;
 
@@ -23,9 +23,8 @@ syscall free(void *ptr)
      *      2) find accounting information of the memblock
      *      3) call freemem on the block with its length
      */
-
-    if(ptr==NULL){
-    	return SYSERR;
+     if(ptr==NULL){
+        return SYSERR;
     }
 
     // step back to get full memblock header
@@ -33,23 +32,21 @@ syscall free(void *ptr)
 
     // basic checks
     if (((void *)block < (void*)memheap) || ((void*)block > (void*)platform.maxaddr)){
-    	return SYSERR;
+        return SYSERR;
     }
 
     if (block->length == 0){
-    	return SYSERR;
+        return SYSERR;
     }
 
     // overflow check
     if ((void*)((ulong)block + block->length) > (void*)platform.maxaddr){
-    	return SYSERR;
+        return SYSERR;
     }
 
     if((void*)block->next != (void*)&(block->next)){
-    	return SYSERR;
+        return SYSERR;
     }
 
     freemem(block, block->length);
-
-    return OK;
 }

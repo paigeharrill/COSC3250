@@ -49,10 +49,14 @@ pgtbl vm_userinit(int pid, page stack)
     mapPage(pagetable, PROCSTACKVADDR, (ulong)stack,
             PTE_R | PTE_W | PTE_U | PTE_A | PTE_D);
 
+    // Map process heap
+    mapPage(pagetable, PROCHEAPVADDR, (ulong)heapinit(ppcb),
+            PTE_R | PTE_W | PTE_U | PTE_A | PTE_D);
+
     page swaparea = pgalloc();
     ppcb->swaparea = swaparea;
     ppcb->swaparea[CTX_KERNSATP] = (ulong)MAKE_SATP(0, _kernpgtbl);
-    ppcb->swaparea[CTX_KERNSP] = (ulong)PROCSTACKVADDR - (ulong)stack;
+    ppcb->swaparea[CTX_SPOFFSET] = (ulong)PROCSTACKVADDR - (ulong)stack;
     mapPage(pagetable, SWAPAREAVADDR, (ulong)swaparea,
             PTE_R | PTE_W | PTE_U | PTE_A | PTE_D);
 

@@ -77,13 +77,13 @@ typedef ulong pte;
 /* Prototypes for dealing with physical pages */
 void pgInit(void);
 void *pgalloc(void);
-int pgfree(void *);
-int pgfreerange(void *start, void *end);
+syscall pgfree(void *);
+syscall pgfreerange(void *start, void *end);
 
 /* Prototypes mapping virtual addresses to physical addresses */
-int mapAddressRange(pgtbl pt, ulong vaddr, ulong paddr, ulong length,
-                    int attr);
-int mapPage(pgtbl pt, ulong vaddr, ulong paddr, int attr);
+syscall mapAddressRange(pgtbl pt, ulong vaddr, ulong paddr, ulong length,
+                        int attr);
+syscall mapPage(pgtbl pt, ulong vaddr, ulong paddr, int attr);
 
 /* Prototypes for dealing with physical pages */
 pgtbl vm_userinit(int pid, page stack);

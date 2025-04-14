@@ -271,7 +271,7 @@ export
 
 xinu.elf: $(COMP_OBJ) $(MAIN_OBJ) \
 	  $(DATA_OBJ) $(LIB_ARC) $(USRTHRS_OBJ)
-	@echo "\tLinking" $@
+	@echo -e "\tLinking" $@
 	$(KERNEL_LD) -o $@ $(LDFLAGS) $^ $(LDLIBS)
 
 # Special case: Handle automatically generating the version.h header.  Note:

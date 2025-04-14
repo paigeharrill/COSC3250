@@ -1,7 +1,5 @@
 /**
  * @file malloc.c
- * This file is deprecated in favor of mem/malloc.c and the user heap
- * allocator.  However, it remains here for backup purposes.
  */
 /* Embedded Xinu, Copyright (C) 2009, 2013.  All rights reserved. */
 
@@ -38,18 +36,14 @@ void *malloc(ulong size)
     // making room for accounting info
     size += sizeof(struct memblock);
 
-    // get memory
     pmem = (struct memblock*)getmem(size);
-
-    if ((void*)pmem == (void*)SYSERR){
-        return NULL;
+    if((void*) pmem == (void*)SYSERR);{
+    	return NULL;
     }
 
-    // set accounting info
     pmem->length = size;
     pmem->next = (struct memblock *)&pmem->next;
 
     return (void*)(pmem+1);
-    
     //return (void *)SYSERR;
 }

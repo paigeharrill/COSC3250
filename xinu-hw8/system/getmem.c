@@ -42,34 +42,34 @@ void *getmem(uint nbytes)
      *        with the request to add more pages to our process heap
      *      - return memory address if successful
      */
-    curr = freelist.next;
-    prev = (memblk *)&freelist;
+    curr = pgfreelist->next;
+    prev = pgfreelist;
 
     while(curr != NULL){
+	uint currSize = *(uint*)((char*)curr-sizeof(uint));
+	//exact fit
+	if(currSize == nbytes){
+		prev->next = curr->next;
+		*(uint*)((char*)curr - sizeof(uint)) = nbytes;
+		return (void*)curr;
+	}
             // if matches the size requirements
-        if(curr->length >= nbytes){
-                prev->next = curr.next;
-                freelist.length -= nbytes;
+        if(currSize > nbytes + sizeof(uint) + sizeof(struct pgmemblk)){
+                leftover = (struct pgmemblk *)((char*) curr + sizeof(uint) + nbytes);
+		uint leftoverSize = currSize - nbytes - sizeof(uint);
 
-                curr->next = (memblk*)&curr->next; // mark allocated
-                return (void*)(curr + 1);       // return pointer
-        } // split the block if there will be leftover
-        else if(curr->length > nbytes){
-                leftover = (memblk*)((ulong)curr + nybtes);
-                leftover->length = curr->length - nbytes;
-                leftover->next = curr->next;
+		*(uint*)((char*)leftover - sizeof(uint)) = leftoverSize;
+		leftover->next = curr->next;
 
-                prev->next = leftover;
-                freelist.length -= nbytes;
+		prev->next = leftover;
 
-                curr->length = nbytes;
-                curr->next = (memblk *)&curr->next;     // mark allocated
-                return (void*)(curr + 1);       // return pointer
+		*(uint*)((char*)curr - sizeof(uint)) = nbytes;
+		return (void*)curr;
         }
 
         // traversing list
         prev = curr;
-        curr = curr->next
+        curr = curr->next;
     }
 
     // if no block, extend heap

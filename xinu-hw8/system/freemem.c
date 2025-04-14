@@ -56,35 +56,37 @@ syscall freemem(void *memptr, uint nbytes)
     }
 
     // calculate top of the block to be freed
-    top = (ulong)block+nbytes;
+    top = (ulong)block+sizeof(uint)+nbytes;
 
-    if (((ulong)prev + prev->length) > (ulong)block){
+    ulong prevTop = (ulong)prev+sizeof(uint)+*(uint*)((char*)prev);
+
+    // overlap with previous block
+    if (prevTop > (ulong)block){
         return SYSERR;
     }
 
+    // overlap with next block
     if ((next != NULL) && (top > (ulong)next)){
         return SYSERR;
     }
 
     // coalesce with next block if adjacent
     if ((next != NULL) && (top == (ulong)next)){
-        block->length = nbytes + next -> length;
-        block->next = next->next;
+        nbytes += sizeof(uint) + *(uint*)((char*)next);
+	*(uint*)block = nbytes;
+	block->next = next->next;
     } else{
-        block->length = nbytes;
-        block->next = next;
+        *(uint*)block = nbytes;
+	block->next = next;
     }
 
     // coalesce with previous block if adjacent
-    if (((ulong)prev + prev->length) == (ulong)block) {
-        prev->length += block->length;
-        prev->next = block->next;
+    if (prevTop == (ulong)block) {
+        *(uint *)((char *)prev) += sizeof(uint) + *(uint *)block;
+	prev->next = block->next;
     } else {
         prev->next = block;
     }
-
-    // update total length
-    pgfreelist->size += nbytes;
 
     return OK;
 }

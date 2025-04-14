@@ -15,95 +15,26 @@ c *
 /* This fake page table will allow you to test your printPageTable function
  * without having paging completely working.
  */
-void test_useraccess(void){
-	kprintf("Attempting to read a kernel variable\n\r");
-	extern uint bufp;
-        kprintf("Bufp: %u\n\r", bufp);
-        kprintf("Attempting to modify variable\n\r");
-        bufp = 1234; // should fail
-        kprintf("Updated: %u\n\r", bufp);
-}
 
-int test_usernone(void) {
-        kprintf("This is a test of ...");
-        user_none();
-        kprintf("user_none() syscall\r\n");
-
-        return 0;
-}
-
-pgtbl createFakeTable(void){
-	pgtbl root = pgalloc();
-	pgtbl lvl1 = pgalloc();
-	pgtbl lvl0 = pgalloc();
-
-	volatile ulong *pte = &(root[5]);
-	*pte = PA2PTE(lvl1) | PTE_V;
-
-	ulong *lvl1pte = &(lvl1[145]);
-	*lvl1pte = PA2PTE(lvl0) | PTE_V;
-
-	ulong *lvl0pte = &(lvl0[343]);
-	*lvl0pte = PA2PTE(0x1000) | PTE_W | PTE_R | PTE_V;
-
-	ulong *lvl0pte1 = &(lvl0[120]);
-	*lvl0pte1 = PA2PTE(0x4000) | PTE_X | PTE_R | PTE_V;
-
-	ulong *lvl0pte2 = &(lvl0[45]);
-	*lvl0pte2 = PA2PTE(0x8000) | PTE_X | PTE_R | PTE_V;
-
-	return root;
-}
-
-void printPageTable(pgtbl pagetable)
-{
-	/*
-	* TODO: Write a function that prints out the page table.
-	* Your function should print out all *valid* page table entries in
-	* the page table.  If any of the entries are a link (if the
-	* Read/Write/Execute bits aren't set), recursively print that page
-	* table.  If it is a leaf, print the page table entry and the
-	* physical address is maps to. 
-	*/
-	static int level = 0;
-	//kprintf("in print function\n\r");
-	for (int i = 0; i < 512; i++){
-		char R = '-', W = '-', X = '-';
-		if(pagetable[i] & PTE_V){
-			ulong entry = pagetable[i];
-			ulong phys_addr = PTE2PA(entry);
-			if(entry & PTE_R){
-				R = 'R';
-			}
-			if(entry & PTE_W){
-				W = 'W';
-			}
-			if(entry & PTE_X){
-				X = 'X';
-			}
-			if(entry & (PTE_R | PTE_W | PTE_X)){
-				kprintf("%*sEntry %d -> PA: 0x%lx \t%c %c %c\n\r", level*4, "", i, phys_addr, R, W, X);
-			}
-			else{
-				kprintf("%*sEntry %d -> Next level table at 0x%lx\n\r", level*4, "",  i, phys_addr);
-				level++;
-				printPageTable((pgtbl)phys_addr);
-				level--;
-			}
-		}
+void print_freelist(void){
+	struct pgmemblk *curr = pgfreelist->next;
+	kprintf("==== Free List ====\n");
+	while(curr != NULL){
+		uint size = *(uint *)((char *)curr - sizeof(uint));
+		kprintf("Blocked at %p, size: %u bytes\n", curr, size);
+		curr = curr->next;
 	}
+	kprintf("=================\n");
 }
-
-/**
- * testcases - called after initialization completes to test things.
+/*testcases - called after initialization completes to test things.
  */
 void testcases(void)
 {
 	uchar c;
-	kprintf("0) Test print page table\r\n");
-    	kprintf("1) Test user process restricted memory access\r\n");
-    	kprintf("2) Test kernel permissions\r\n");
-	kprintf("3) Test null pointer exception\r\n");
+	kprintf("0) Test malloc() and free()\r\n");
+    	kprintf("1) Test getmem() and freemem()\r\n");
+    	kprintf("2) Stress getmem/freemem and check freelist compaction\r\n");
+	
 	kprintf("===TEST BEGIN===\r\n");
 
 	// TODO: Test your operating system!
@@ -112,41 +43,85 @@ void testcases(void)
 	switch (c)
 	{
 		case '0':
-			//pgtbl samplePage = createFakeTable();
-			//printPageTable(samplePage);
-			pid_typ pid = create((void *)test_usernone, INITSTK, 1, "test_usernone", 0);
-			ready(pid, RESCHED_NO);
-			printPageTable(proctab[pid].pagetable);
-			// TODO: Write a testcase that creates a user process
-			// and prints out it's page table
+			kprintf("Testing malloc() and free()");
+			void *ptr1 = malloc(64);
+
+			if(ptr1 != NULL){
+				kprintf("Allocated 64 bytes at %p\n", ptr1);
+				*((char *)ptr1) = 'X';
+				kprintf("Vaue written to ptr1: %c\n", *((char *)ptr1));
+				free(ptr1);
+				kprintf("freed ptr1\n");
+			}
+			else{
+				kprintf("malloc failed for 64 bytes\n");
+			}
+
+			void *ptr2 = malloc(128);
+			void *ptr3 = malloc(256);
+			kprintf("Allocated ptr2: %p\n", ptr2);
+			kprintf("Allocated ptr3: %p\n", ptr3);
+			free(ptr2);
+			free(ptr3);
+			kprintf("Freed ptr2 and ptr3\n");
 			break;
 		case '1':
-			kprintf("\nTesting user process restricted memory access\n");
-			void (*user_func)(void) = (void (*)(void))0xFFFFFFFF80000000;
-			kprintf("Trying to execute user function at 0xFFFFFFFF80000000\n");
-			user_func(); // should trigger exception
-			kprintf("This shouldn't print");
-			// TODO: Write a testcase that demonstrates a user
-			// process cannot access certain areas of memory
+			kprintf("Testing getmem() and freemem()\n");
+
+			void *raw = getmem(100);
+			if (raw != (void*)SYSERR){
+				kprintf("getmem(100) returned %p\n", raw);
+				freemem(raw, 100);
+				kprintf("freemem successful\n");
+			}
+			else{
+				kprintf("getmem failed\n");
+			}
 			break;
 		case '2':
-			kprintf("\nTesting kernel permissions\n\r");
-			pid_typ pid2 = create((void*)test_useraccess, INITSTK, 10, "test_useraccess", 0);
-			ready(pid2, RESCHED_YES);
-			// TODO: Write a testcase that demonstrates a user
-			// process can read kernel variables but cannot write
-			// to them
-			break;
-		case '3':
-			kprintf("\nTesting Null Pointer Exception\n");
-			int *null_ptr = NULL;
-			kprintf("Accessing NULL pointer\n");
-			int value = *null_ptr;
-			kprintf("Value at NULL: %d\n", value); // should break;
-			// TODO: Extra credit! Add handling in xtrap to detect
-			// and print out a Null Pointer Exception.  Write a
-			// testcase that demonstrates your OS can detect a
-			// Null Pointer Exception.
+			kprintf("\nRunning memory allocator stress test...\n");
+
+			print_freelist();
+
+			void *a = getmem(64);
+			void *b = getmem(128);
+			void *c = getmem(256);
+			kprintf("Allocated blocks:\na: %p\nb: %p\nc: %p\n", a, b, c);
+
+			print_freelist();
+
+			kprintf("Freeing b (middle block)\n");
+			freemem(b, 128);
+			print_freelist();
+
+			kprintf("Freeing a (adjacent to b)\n");
+			freemem(a, 64);
+			print_freelist();
+
+			kprintf("Freeing c\n");
+			freemem(c, 256);
+			print_freelist();
+
+			kprintf("Allocating blocks until heap is full (watch for leaks)\n");
+			void *blocks[100];
+			int count = 0;
+
+			while(1){
+				void *block = getmem(512);
+				if ((int)block == (int)SYSERR);{
+					break;
+				}
+				blocks[count++] = block;
+			}
+
+			kprintf("Allocated %d blocks of 512 bytes\n", count);
+			print_freelist();
+
+			for(int i = 0; i<count; i++){
+				freemem(blocks[i], 512);
+			}
+			kprintf("Freed all blocks.\n");
+			print_freelist();
 			break;
 		default:
 			break;

@@ -9,6 +9,7 @@
 #include <platform.h>
 
 extern void *end;
+page heapinit(pcb * ppcb);
 
 /**
  * Creates the mappings for a user process.

@@ -9,12 +9,6 @@
 #define _MEMORY_H_
 
 #include <stddef.h>
-//#include <spinlock.h>
-
-/* roundmb - round address up to size of memblock  */
-#define roundmb(x)  (void *)( ((sizeof(ulong)-1) + (ulong)(x)) & ~(sizeof(ulong)-1) )
-/* truncmb - truncate address down to size of memblock */
-#define truncmb(x)  (void *)( ((ulong)(x)) & ~(sizeof(ulong)-1) )
 
 /**
  * Structure for a block of memory.
@@ -51,5 +45,13 @@ extern ulong *_kernpgtbl;       /* kernel page table                  */
 /* Memory function prototypes */
 void *getmem(uint nbytes);
 syscall freemem(void *pmem, uint nbytes);
+void *incheap(ulong size);
+
+/* These macros assume that sizeof(memblk) is a power of 2! */
+/* roundmb - round address up to size of memblock  */
+#define roundmb(x)  (void *)( ((sizeof(memblk)-1) + \
+			(ulong)(x)) & ~(sizeof(memblk)-1) )
+/* truncmb - truncate address down to size of memblock */
+#define truncmb(x)  (void *)( ((ulong)(x)) & ~(sizeof(memblk)-1) )
 
 #endif                          /* _MEMORY_H_ */

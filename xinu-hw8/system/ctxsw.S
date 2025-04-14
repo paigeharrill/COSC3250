@@ -15,13 +15,13 @@ TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
 
 #include <riscv.h>
 
-.text
+.section .ctxswsec
 	.align 4
 	.globl	ctxsw
 
 
 /**
- * @fn void ctxsw(&oldcontext, &newcontext)
+ * @fn void ctxsw(&oldcontext, &newcontext, newpagetable)
  *
  * Switch context (values in registers) to another process, saving the
  * current processes information. This function will not return as normally
@@ -30,6 +30,7 @@ TA-BOT:MAILTO paige.harrill@marquette.edu kayla.imanzi@marquette.edu
  *
  * @param  &oldcontext address of outgoing process context save area
  * @param  &newcontext address of incoming process context save area
+ * @param  newpagetable SATP value for new process
  * @return special case -- see above
  */
 	.func ctxsw

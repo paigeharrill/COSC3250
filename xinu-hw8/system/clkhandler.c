@@ -5,7 +5,7 @@
 
 #include <xinu.h>
 
-int resched(void);
+syscall resched(void);
 
 /**
  * @ingroup timer

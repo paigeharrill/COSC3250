@@ -22,7 +22,7 @@ typedef char bool;              /**< boolean type                       */
 typedef unsigned long size_t;   /**< size type                          */
 
 /* Function declaration return types */
-typedef int syscall;            /**< system call declaration            */
+typedef long syscall;           /**< system call declaration            */
 typedef int devcall;            /**< device call declaration            */
 typedef int shellcmd;           /**< shell command declaration          */
 typedef int process;            /**< process declaration                */

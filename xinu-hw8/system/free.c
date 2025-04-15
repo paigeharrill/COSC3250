@@ -27,9 +27,6 @@ void free(void *ptr)
 
      block = (struct memblock *)((char *)ptr -2 * sizeof(ulong));
      nbytes = block->length;
-     if (freemem((void *)block, nbytes) == SYSERR){
-	     return SYSERR;
-     }
-     
-     return OK;
+     (void)freemem((void *)block, nbytes);
+
 }

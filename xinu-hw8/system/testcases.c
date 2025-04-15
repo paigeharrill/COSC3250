@@ -78,6 +78,7 @@ void testcases(void)
     	kprintf("2) Stress getmem/freemem\r\n");
 	kprintf("3) Test freelist compaction\r\n");
 	kprintf("4) Print freelist\r\n");
+	kprintf("5) Extra testing for malloc()\r\n");
 	
 	kprintf("===TEST BEGIN===\r\n");
 
@@ -102,17 +103,12 @@ void testcases(void)
 				kprintf("malloc allocated 128 bytes at %x\n\r", (ulong)ptr);
 			}
 			print_freelist();
-			/*
 			kprintf("Test free() after using malloc()\n\r");
-			syscall retval = free(ptr);
-			if (retval == SYSERR)
-			{ kprintf("free() failed\n\r");
-			}
-			else{
-				kprintf("free succeded in freeing the block at %x\n\r", (ulong)ptr);
-			}
+			//call free
+			free(ptr);
+			kprintf("Free() was called.\n\r");
 			kprintf("Free list after free: \n\r");
-			print_freelist();*/
+			print_freelist();
 			break;}
 
 		case '1':{
@@ -169,7 +165,7 @@ void testcases(void)
 					if (freemem(allocated_blocks[i], (uint)roundmb(sizes[i])) == SYSERR) {
 						kprintf("Error: freemem() failed to free block allocated for %u bytes.\n", sizes[i]);
 					} else {
-						kprintf("Freed block allocated for %u bytes (rounded to %u bytes).\n", sizes[i], (uint)roundmb(sizes[i]));
+						kprintf("Freed block allocated for %u bytes (rounded to %u bytes).\n\r", sizes[i], (uint)roundmb(sizes[i]));
 					}
 					print_freelist();
 				}
@@ -231,6 +227,55 @@ void testcases(void)
 			setup_heap();
 			print_freelist();
 			break;}
+
+		case '5':{
+			 kprintf("\n Maalloc test case\n\r");
+
+			 //set up heap
+			 setup_heap();
+			 print_freelist();
+			 
+			 //Test that malloc returns null
+			 void *p0 = malloc(0);
+			 if(p0 == NULL) {
+				 kprintf("malloc(0) correctly returned NULL.\n\r");
+			 } else {
+				 kprintf("Error: malloc(0) did not return NULL; returned %x\n\r", (ulong)p0);
+			 }
+
+			 //define sizes to allocate
+			 uint sizes[] = {1, 50, 100, 200, 1024};
+			 int numSizes = sizeof(sizes) / sizeof(uint);
+			 void *allocated[numSizes];
+
+			 //Allocate memory blocks for each size
+			 for (int i = 0; i < numSizes; i++) {
+				 allocated[i] = malloc(sizes[i]);
+				 if (allocated[i] == NULL) {
+					 kprintf("Error: malloc(%u) returned NULL.\n\r", sizes[i]);
+				 } else {
+					 kprintf("malloc(%u) returned : %x\n\r", sizes[i], (ulong)allocated[i]);
+				 }
+			 }
+
+			 //print free list after malloc
+			 kprintf("Free lost after malloc allocations: \n\r");
+			 print_freelist();
+
+			 //free each block
+			 for (int i = 0; i < numSizes; i++) {
+				 if (allocated[i] != NULL) {
+					 free(allocated[i]);
+					 kprintf("Freed block allocated for %u bytes (pointer: %x).\n\r", sizes[i], (ulong)allocated[i]);
+				 }
+			 }
+
+			 //print free list after freeing all blocks
+			 kprintf("Final free list after freeing all malloc allocations:\n\r");
+			 print_freelist();
+			 break;}
+
+
 		default:
 			break;
 	}

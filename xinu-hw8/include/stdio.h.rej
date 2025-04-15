@@ -1,0 +1,11 @@
+--- include/stdio.h	2025-02-14 13:24:43.000000000 -0600
++++ include/stdio.h	2025-04-11 15:46:30.784561637 -0500
+@@ -36,7 +36,7 @@
+ 
+ /* Formatted input  */
+ int _doscan(const char *fmt, va_list ap,
+-            int (*getch)(long, long), int(*ungetch)(long, long),
++            int (*getch)(long, long), int (*ungetch)(long, long),
+             long arg1, long arg2);
+ 
+ int fscanf(int dev, const char *format, ...);

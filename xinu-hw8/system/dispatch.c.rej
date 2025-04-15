@@ -1,0 +1,18 @@
+--- system/dispatch.c	2025-02-19 21:40:16.000000000 -0600
++++ system/dispatch.c	2025-04-14 12:49:12.708218539 -0500
+@@ -13,11 +13,13 @@
+  * Dispatch the trap or exception handler, called via interrupt.S
+  * @param cause  The value of the scause register 
+  * @param stval  The value of the stval register  
+- * @param frame  The stack pointer of the process that caused the interupt 
++ * @param frame  The stack pointer of the process that caused the interrupt 
+  * @param program_counter  The value of the sepc register 
++ * @returns the SATP value to switch to
+  */
+ 
+-void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
++ulong dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter)
++{
+     ulong swi_opcode;
+     
+     if((long)cause > 0) {

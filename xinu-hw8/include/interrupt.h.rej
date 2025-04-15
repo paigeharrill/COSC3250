@@ -1,0 +1,13 @@
+--- include/interrupt.h	2025-02-14 13:24:44.000000000 -0600
++++ include/interrupt.h	2025-04-11 15:46:30.801561600 -0500
+@@ -43,8 +43,8 @@
+ #define E_STORE_AMO_PAGEFAULT 15
+ 
+ 
+-void dispatch(ulong cause, ulong val, ulong *frame,
+-              ulong *program_counter);
++ulong dispatch(ulong cause, ulong val, ulong *frame,
++               ulong *program_counter);
+ void xtrap(ulong *frame, ulong cause, ulong address, ulong *pc);
+ 
+ static inline void set_sepc(ulong x)

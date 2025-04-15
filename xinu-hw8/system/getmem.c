@@ -30,8 +30,8 @@ void *getmem(uint nbytes)
         return (void *)SYSERR;
     }
 
-    /* round to multiple of memblock size   */
-    nbytes = (uint)roundmb(nbytes);
+       /* round to multiple of memblock size   */
+        nbytes = (uint)roundmb(nbytes);
     struct memhead *head = (memhead *)proctab[currpid].heaptop;
 
     /* TODO:
@@ -41,41 +41,76 @@ void *getmem(uint nbytes)
      *      - if there is no suitable block, call user_incheap
      *        with the request to add more pages to our process heap
      *      - return memory address if successful
-     */
-    curr = pgfreelist->next;
-    prev = pgfreelist;
+*
+*
+*/
+	
+    //traverse free list using first-fit strategy
+    prev = NULL;
+    curr = head->head;
 
-    while(curr != NULL){
-	uint currSize = *(uint*)((char*)curr-sizeof(uint));
-	//exact fit
-	if(currSize == nbytes){
-		prev->next = curr->next;
-		*(uint*)((char*)curr - sizeof(uint)) = nbytes;
-		return (void*)curr;
-	}
-            // if matches the size requirements
-        if(currSize > nbytes + sizeof(uint) + sizeof(struct pgmemblk)){
-                leftover = (struct pgmemblk *)((char*) curr + sizeof(uint) + nbytes);
-		uint leftoverSize = currSize - nbytes - sizeof(uint);
+    while (curr != NULL){
+	    if (curr->length >= nbytes)
+	    {
+		    //if current block is larger, split into allocate and leftover block
+		    if((curr->length - nbytes) >= sizeof(memblk))
+		    {
+			    //create new free block from remainder
+			    //new block staring nbytes after start of curr
+			    leftover = (memblk *)((char *)curr + nbytes);
+			    leftover->length = curr->length - nbytes;
+			    leftover->next = curr->next;
 
-		*(uint*)((char*)leftover - sizeof(uint)) = leftoverSize;
-		leftover->next = curr->next;
+			    //replace curr in free list with leftover
+			    if (prev == NULL){
+				    head->head = leftover;
+			    }
+			    else
+			    {
+				    prev->next = leftover;
+			    }
 
-		prev->next = leftover;
-
-		*(uint*)((char*)curr - sizeof(uint)) = nbytes;
-		return (void*)curr;
-        }
-
-        // traversing list
-        prev = curr;
-        curr = curr->next;
+			    //update free list's total length
+			    head->length -= nbytes;
+			    curr->length = nbytes;
+		    }
+		    else
+		    {		
+			    //if block is just big enough or leaves too small fragment, remove enitre block
+			    if (prev == NULL){
+				    head->head = curr-> next;
+			    }
+			    else{
+				    prev->next = curr->next;
+			    }
+			    head->length -= curr->length;
+		    }
+		    return (void *) curr;
+	    }
+		    prev = curr;
+		    curr = curr->next;
     }
 
-    // if no block, extend heap
-    if (user_incheap(nbytes) == OK){
-        return getmem(nbytes);
-    }
+    //no suitable block found in free list: extend heap
+    {
 
-    return (void *)SYSERR;
+    	    //compute size to extend heap by
+	    uint extend_size = roundpage(nbytes);
+	    void *newchunk = user_incheap(nbytes);
+
+	    if ((ulong)newchunk == SYSERR || newchunk == NULL)
+	    { return (void *)SYSERR;}
+
+	    //create new memblk in the newly allocated heap space
+	   memblk *newblk = (memblk *)newchunk;
+	   newblk->length = extend_size;
+	   newblk->next = head->head;
+
+	   //add new block to free list
+	   head->head = newblk;
+	   head->length += newblk->length;
+
+	   //recursively try getmem()
+	   return getmem(nbytes);
+    }
 }

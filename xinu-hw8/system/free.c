@@ -23,30 +23,13 @@ void free(void *ptr)
      *      2) find accounting information of the memblock
      *      3) call freemem on the block with its length
      */
-     if(ptr==NULL){
-        return SYSERR;
-    }
+     ulong nbytes;
 
-    // step back to get full memblock header
-    block = ((struct memblock *)ptr) -1;
-
-    // basic checks
-    if (((void *)block < (void*)memheap) || ((void*)block > (void*)platform.maxaddr)){
-        return SYSERR;
-    }
-
-    if (block->length == 0){
-        return SYSERR;
-    }
-
-    // overflow check
-    if ((void*)((ulong)block + block->length) > (void*)platform.maxaddr){
-        return SYSERR;
-    }
-
-    if((void*)block->next != (void*)&(block->next)){
-        return SYSERR;
-    }
-
-    freemem(block, block->length);
+     block = (struct memblock *)((char *)ptr -2 * sizeof(ulong));
+     nbytes = block->length;
+     if (freemem((void *)block, nbytes) == SYSERR){
+	     return SYSERR;
+     }
+     
+     return OK;
 }

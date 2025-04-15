@@ -46,47 +46,62 @@ syscall freemem(void *memptr, uint nbytes)
      *      - Coalesce with previous block if adjacent
      *      - Coalesce with next block if adjacent
      */
-    next = (struct memblock *)pgfreelist->next;
-    prev = (struct memblock *)&pgfreelist;
+    
+    block->length = nbytes;
+    block->next = NULL;
 
-    // traverse to find correct position in address ordered free list
+    //traverse free list to find point of insertion
+    prev = NULL;
+    next = head->head;
+
+    // traverse to find correct position in address of free list
     while(next != NULL && (ulong)next < (ulong)block){
         prev = next;
         next = next->next;
     }
 
-    // calculate top of the block to be freed
-    top = (ulong)block+sizeof(uint)+nbytes;
-
-    ulong prevTop = (ulong)prev+sizeof(uint)+*(uint*)((char*)prev);
-
-    // overlap with previous block
-    if (prevTop > (ulong)block){
-        return SYSERR;
+    //overlap checking, check with previous block
+    if (prev != NULL)
+    {
+	    top = (ulong)prev + prev->length;
+	    if (top > (ulong)block)
+	    { return SYSERR;}
     }
 
-    // overlap with next block
-    if ((next != NULL) && (top > (ulong)next)){
-        return SYSERR;
+    //Check next block
+    top = (ulong)block + nbytes;
+    if (next != NULL)
+    {
+	    if (top > (ulong) next)
+	    { return SYSERR;}
     }
 
-    // coalesce with next block if adjacent
-    if ((next != NULL) && (top == (ulong)next)){
-        nbytes += sizeof(uint) + *(uint*)((char*)next);
-	*(uint*)block = nbytes;
-	block->next = next->next;
-    } else{
-        *(uint*)block = nbytes;
-	block->next = next;
+    //merge with previous if adjacent
+    if (prev != NULL && ((ulong)prev + prev->length == (ulong)block))
+    {
+	    prev->length += nbytes;
+	    block = prev;
+    }
+    else
+    {
+	    //insert block into free list
+	    block->next = next;
+	    if (prev == NULL){
+		    head->head = block;
+	    }
+	    else{
+		    prev->next = block;
+	    }
     }
 
-    // coalesce with previous block if adjacent
-    if (prevTop == (ulong)block) {
-        *(uint *)((char *)prev) += sizeof(uint) + *(uint *)block;
-	prev->next = block->next;
-    } else {
-        prev->next = block;
+    //merge with next block if adjacent
+    if (next != NULL && ((ulong)block + block->length == (ulong)next))
+    {
+	    block->length += next->length;
+	    block->next = next->next;
     }
+    //update free list total mem
+    head->length += nbytes;
 
     return OK;
 }

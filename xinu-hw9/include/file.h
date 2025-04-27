@@ -83,5 +83,7 @@ devcall sbInit(struct superblock *, int);
 devcall sbOpen(struct disk *);
 devcall sbFreeBlock(struct superblock *, int);
 devcall sbGetBlock(struct superblock *);
+devcall swizzle(int diskfd, struct fbcnode *fbc);
+devcall swizzleSuperBlock(int diskfd, struct superblock *psuper);
 
 #endif
